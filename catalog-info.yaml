@@ -1,0 +1,13 @@
+# BEGIN TERRAFORM MANAGED BLOCK
+"apiVersion": "backstage.io/v1alpha1"
+"kind": "Location"
+"metadata":
+  "annotations":
+    "github.com/project-slug": "LiveRamp/user-context-protocol"
+    "github.com/team-slug": "LiveRamp/identity-ds-admins"
+  "description": "An open standard by LiveRamp defining how intelligent agents exchange
+    user context, enabling interoperability from prompt-based LLM coordination to
+    embedding-based optimization."
+  "name": "user-context-protocol"
+  "tags": []
+# END TERRAFORM MANAGED BLOCK
