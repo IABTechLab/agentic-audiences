@@ -63,8 +63,9 @@ UCP defines:
 2. **Context Management** - Strategies for maintaining scoped, composable context windows in LLM-driven agents.
 3. **Embedding Interoperability** - Standards for shared embedding structures, dimensional alignment, and vector-space identity.
 4. **Agent Coordination Flows** - Request and response patterns for cross-agent actions.
-5. **Privacy and Consent Controls** - Mechanisms for secure signal sharing.
-6. **Agentic Attestation** - Governance of human or agentic inputs into systems interacting with consumer data.
+5. **Privacy and Consent Controls** - Mechanisms for secure signal sharing, security and authentication, permissible uses, and time-to-live (TTL) of consented data.
+6. **Agentic Attestation** - Ensures confidentiality and integrity of code and information accessed or executed through agents, including provenance and controlled execution environments.
+7. **Token Exchange and Settlement** - Enables agents to exchange tokens or perform value transfers for advertising events, supporting integration with emerging payment and attribution protocols such as AP2 and X402.
 
 By evolving from structured text exchanges to compact vector exchanges, UCP will enable major gains in speed, scale, and cost efficiency for campaign optimization.
 
@@ -112,7 +113,7 @@ To get involved:
 - Specification and Documentation: Creative Commons Attribution 4.0 International (CC BY 4.0)  
 - Reference Implementations: Apache License 2.0  
 
-"User Context Protocol" is a trademarks of LiveRamp Holdings, Inc.
+"User Context Protocol" is a trademark of LiveRamp Holdings, Inc.  
 Use of these marks is subject to the [TRADEMARK.md](./TRADEMARK.md) policy.
 
 ---
