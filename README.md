@@ -113,7 +113,4 @@ To get involved:
 - Specification and Documentation: Creative Commons Attribution 4.0 International (CC BY 4.0)  
 - Reference Implementations: Apache License 2.0  
 
-"User Context Protocol" is a trademark of LiveRamp Holdings, Inc.  
-Use of these marks is subject to the [TRADEMARK.md](./TRADEMARK.md) policy.
-
 ---
