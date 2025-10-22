@@ -1,0 +1,34 @@
+{
+    "spec_version": "1.0.0",
+    "message_id": "3f6a5fe0-9c29-4b6c-8e1e-1f6f5e6d9b01",
+    "timestamp": "2025-10-22T17:05:00Z",
+    "model": {
+      "id": "sbert-mini-ctx-001",
+      "version": "1.0.0",
+      "type": "encoder",
+      "architecture": "transformer",
+      "dimension": 256,
+      "metric": "cosine",
+      "normalization": "l2_unit",
+      "embedding_space_id": "ucp://spaces/contextual/en-v1"
+    },
+    "context": {
+      "url": "https://site.example/article",
+      "keywords": ["financing", "ev tax credit"],
+      "language": "en"
+    },
+    "consent": {
+      "framework": "IAB-CTv2",
+      "purposes": ["optimization"],
+      "ttl_seconds": 604800
+    },
+    "embeddings": [
+      {
+        "id": "vec-1",
+        "type": "context",
+        "vector": [0.01, 0.02, -0.03],
+        "dtype": "float32",
+        "dimension": 256
+      }
+    ]
+  }
