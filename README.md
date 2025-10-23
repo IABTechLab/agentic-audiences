@@ -13,7 +13,7 @@ As the industry transitions into the agentic web, where autonomous buyer, seller
 This repository contains:
 - **Technical specifications** for embedding exchange formats and schemas
 - **AI/ML model architecture guidance** ([`/docs/AI_ML Models in Agentic Digital Advertising Era.pdf`](docs/AI_ML%20Models%20in%20Agentic%20Digital%20Advertising%20Era.pdf)) explaining how 15+ model categories across the advertising lifecycle consume and produce embeddings
-- **Reference schemas and examples** demonstrating real-world protocol usage
+- **Reference schemas and examples** demonstrating real-world protocol usage (in-progress)
 
 ---
 
@@ -21,14 +21,14 @@ This repository contains:
 
 ### The Challenge: Agents, Models, and Signals
 
-Modern advertising operates through **agentic AI systems** that make millions of autonomous decisions per second. These agents rely on **AI/ML models**—from click prediction to conversion modeling to multi-touch attribution—that process vast arrays of **signals** to understand user intent and optimize outcomes.
+Next-gen advertising will operate through **agentic AI systems** that make millions of autonomous decisions per second. These agents will rely on **AI/ML models**—from click prediction to conversion modeling to multi-touch attribution—that process vast arrays of **signals** to understand user intent and optimize outcomes.
 
 **Signals** come in three critical forms:
 - **Identity signals**: Who the user is (hashed identifiers, segments, behavioral history)
 - **Contextual signals**: What the user is doing right now (page content, time of day, device, engagement patterns)
 - **Reinforcement signals**: How users respond to advertising (impressions, clicks, conversions, engagement metrics)
 
-Today's advertising systems struggle to efficiently exchange these signals between agents:
+Today's advertising systems struggle to efficiently exchange these signals:
 - **Text-based prompts** are too verbose and slow for real-time bidding (<100ms response time)
 - **Raw feature vectors** lack semantic meaning and don't transfer across systems
 - **Proprietary formats** prevent interoperability between buyer, seller, and measurement agents
@@ -74,11 +74,29 @@ UCP defines how agents exchange these embeddings, transforming advertising from 
 
 ## Agent Ecosystem
 
-| Agent Type | Role | Early-Stage Interface | Future Interface |
-|-------------|------|----------------------|------------------|
-| Buyer Agent | Plans and executes ad placements | Prompt plus JSON I/O | Embedding-based optimization |
-| Seller Agent | Publishes and prices inventory | Context-aware API | Vector similarity negotiation |
-| Measurement Agent | Tracks outcomes and updates models | Event feed | Feedback embedding update |
+UCP builds on and extends the [**Ad Context Protocol (ADCP)**](https://github.com/adcontextprotocol/adcp), an open standard for advertising automation that enables AI assistants to manage campaigns through natural language interactions.
+
+**How UCP Complements ADCP:**
+
+- **ADCP** defines the control plane—how agents interact with advertising platforms (Signals Activation, Media Buy, Curation protocols)
+- **UCP** defines the data plane—how agents exchange embeddings that encode identity, contextual, and reinforcement signals
+
+Together, these protocols enable a complete agentic advertising ecosystem:
+
+| Layer | Protocol | Purpose |
+|-------|----------|---------|
+| **Control** | ADCP | Agent commands and platform integrations (activate audiences, execute buys, manage inventory) |
+| **Data** | UCP | Agent-to-agent embedding exchange (share learned representations of users, contexts, and outcomes) |
+
+**Example Integration:**
+1. A buyer agent uses **ADCP** to discover audience signals: "Find premium sports enthusiasts interested in running shoes"
+2. The platform returns data via **ADCP's Signals Activation Protocol**
+3. The buyer agent uses **UCP** to exchange contextual and identity embeddings with a seller agent
+4. The seller agent uses embeddings to match inventory in real-time via vector similarity
+5. Reinforcement signals (impressions, conversions) flow back through **UCP** to update models
+6. The measurement agent uses **ADCP** to report results and **UCP** to share learned embeddings
+
+By integrating with ADCP's agent ecosystem, UCP enables the transition from prompt-based advertising automation to embedding-based intelligence to drive efficiencies by eliminating the need for massive copies of user-level datasets across the ecosystem.
 
 ---
 
