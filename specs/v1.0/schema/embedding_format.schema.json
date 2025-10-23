@@ -1,0 +1,221 @@
+{
+    "$id": "https://raw.githubusercontent.com/LiveRamp/user-context-protocol/main/specs/v1.0/schema/embedding_format.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": ["spec_version", "message_id", "timestamp", "model", "context", "embeddings"],
+    "properties": {
+      "spec_version": { "type": "string" },
+      "message_id": { "type": "string" },
+      "timestamp": { "type": "string", "format": "date-time" },
+      "producer": {
+        "type": "object",
+        "properties": {
+          "agent_id": { "type": "string" },
+          "agent_role": { "type": "string", "enum": ["publisher","seller","buyer","measurement","brand","other"] },
+          "software": { "type": "string" },
+          "software_version": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "model": {
+        "type": "object",
+        "required": ["id","version","type","architecture","dimension","metric","embedding_space_id"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "family": { "type": "string" },
+          "vendor": { "type": "string" },
+          "version": { "type": "string" },
+          "type": { "type": "string", "enum": ["encoder","llm","slm"] },
+          "architecture": { "type": "string" },
+          "dimension": { "type": "integer", "minimum": 1 },
+          "metric": { "type": "string", "enum": ["cosine","dot","l2"] },
+          "normalization": { "type": "string", "enum": ["none","l2_unit"], "default": "none" },
+          "tokenizer": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" },
+              "lowercase": { "type": "boolean" },
+              "strip_accents": { "type": "boolean" },
+              "vocab_id": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "pooling": { "type": "string", "enum": ["mean","max","cls","weighted","other"] },
+          "projection": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["none","pca","whitening","learned"] },
+              "params_ref": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "quantization": {
+            "type": "object",
+            "properties": {
+              "scheme": { "type": "string", "enum": ["none","int8","uint8","pq","sq"] },
+              "scale": { "type": "number" },
+              "zero_point": { "type": "integer" },
+              "pack_format": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "embedding_space_id": { "type": "string" },
+          "training_domain": { "type": "array", "items": { "type": "string" } },
+          "licensing": {
+            "type": "object",
+            "properties": {
+              "license": { "type": "string" },
+              "usage_terms_url": { "type": "string", "format": "uri" }
+            },
+            "additionalProperties": false
+          },
+          "compatibility": {
+            "type": "object",
+            "properties": {
+              "compatible_spaces": { "type": "array", "items": { "type": "string" } },
+              "notes": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "context": {
+        "type": "object",
+        "required": ["language"],
+        "properties": {
+          "context_id": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "page_title": { "type": "string" },
+          "keywords": { "type": "array", "items": { "type": "string" } },
+          "language": { "type": "string" },
+          "content_hash": { "type": "string" },
+          "publisher": { "type": "string" },
+          "placement": {
+            "type": "object",
+            "properties": {
+              "ad_unit": { "type": "string" },
+              "slot_id": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "device": {
+            "type": "object",
+            "properties": {
+              "ua_hash": { "type": "string" },
+              "platform": { "type": "string" },
+              "form_factor": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "geography": {
+            "type": "object",
+            "properties": {
+              "country": { "type": "string" },
+              "region": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "identity": {
+        "type": "object",
+        "properties": {
+          "namespace": { "type": "string" },
+          "value_hash": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "additionalProperties": false
+      },
+      "consent": {
+        "type": "object",
+        "required": ["purposes","ttl_seconds"],
+        "properties": {
+          "framework": { "type": "string" },
+          "consent_string": { "type": "string" },
+          "purposes": { "type": "array", "items": { "type": "string" } },
+          "permissible_uses": { "type": "array", "items": { "type": "string" } },
+          "ttl_seconds": { "type": "integer", "minimum": 0 },
+          "legal_basis": { "type": "string", "enum": ["consent","contract","legitimate_interest","other"] },
+          "policy_version": { "type": "string" },
+          "opt_out": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      },
+      "security": {
+        "type": "object",
+        "properties": {
+          "signature": {
+            "type": "object",
+            "properties": {
+              "alg": { "type": "string" },
+              "key_id": { "type": "string" },
+              "sig_b64": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "transport": { "type": "string" },
+          "attestation": {
+            "type": "object",
+            "properties": {
+              "env": { "type": "string" },
+              "mode": { "type": "string" },
+              "policy_hash": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "embeddings": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["id","type","dimension"],
+          "oneOf": [
+            { "required": ["vector"] },
+            { "required": ["quantized_b64"] }
+          ],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "type": "string", "enum": ["context","creative","user_intent","inventory","query"] },
+            "vector": {
+              "type": "array",
+              "items": { "type": "number" }
+            },
+            "quantized_b64": { "type": "string" },
+            "dtype": { "type": "string", "enum": ["float32","float16","int8","uint8"] },
+            "dimension": { "type": "integer", "minimum": 1 },
+            "scale": { "type": "number" },
+            "compressed": { "type": "boolean" },
+            "hash": { "type": "string" },
+            "origin": {
+              "type": "object",
+              "properties": {
+                "text_window": { "type": "string" },
+                "source_fields": { "type": "array", "items": { "type": "string" } },
+                "on_device": { "type": "boolean" }
+              },
+              "additionalProperties": false
+            },
+            "usage_hints": {
+              "type": "object",
+              "properties": {
+                "score_metric": { "type": "string", "enum": ["cosine","dot","l2"] },
+                "threshold": { "type": "number" },
+                "intended_consumers": { "type": "array", "items": { "type": "string" } }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "extensions": { "type": "object" }
+    },
+    "additionalProperties": false
+  }
