@@ -2,6 +2,8 @@
 
 An Open Protocol for Intelligent Interoperability Across Advertising Agents
 
+> **Note:** This specification represents LiveRamp's initial proposal. We have open-sourced this repository to enable the community to collaboratively define and reach collective agreement on a standard for embedding exchange in agentic advertising.
+
 ---
 
 ## Overview
