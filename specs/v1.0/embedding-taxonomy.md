@@ -433,7 +433,7 @@ This taxonomy is a living document. Anticipated future additions:
 
 ## 8. Change Log
 
-- **v0.1 (2025-01-24)**: Initial draft taxonomy proposal
+- **v0.1 (2025-10-24)**: Initial draft taxonomy proposal
   - Defined 6 primary signal types with subcategories
   - Established temporal scope and composition classifications
   - Added metadata schema and usage guidelines
