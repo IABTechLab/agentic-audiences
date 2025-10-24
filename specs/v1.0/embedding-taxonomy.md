@@ -2,7 +2,6 @@
 
 **Version:** 0.1 (Draft)
 **Status:** Proposal
-**Last Updated:** 2025-01-24
 
 ---
 
