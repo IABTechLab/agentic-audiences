@@ -1,4 +1,4 @@
-# UCP Embedding Taxonomy
+# Agentic Audiences Embedding Taxonomy
 
 **Version:** 0.1 (Draft)
 **Status:** Proposal
@@ -7,7 +7,7 @@
 
 ## Overview
 
-This document defines a taxonomy for classifying embeddings exchanged via the User Context Protocol. Embeddings encode different types of signals—identity, contextual, and reinforcement—and understanding their semantic purpose is critical for proper interpretation, combination, and usage by agents.
+This document defines a taxonomy for classifying embeddings exchanged via Agentic Audiences. Embeddings encode different types of signals—identity, contextual, and reinforcement—and understanding their semantic purpose is critical for proper interpretation, combination, and usage by agents.
 
 The taxonomy categorizes embeddings along three dimensions:
 1. **Signal Type** - What kind of information the embedding encodes
@@ -425,7 +425,7 @@ This taxonomy is a living document. Anticipated future additions:
 
 ## 7. References
 
-- User Context Protocol Embedding Format Specification (`embedding_format.schema.json`)
+- Agentic Audiences Embedding Format Specification (`embedding_format.schema.json`)
 - AI/ML Models in Agentic Digital Advertising Era (whitepaper)
 - Ad Context Protocol (ADCP) - https://github.com/adcontextprotocol/adcp
 
@@ -440,6 +440,6 @@ This taxonomy is a living document. Anticipated future additions:
 
 ---
 
-**Maintainers:** LiveRamp UCP Working Group
-**Feedback:** Submit issues or PRs to the UCP repository
+**Maintainers:** LiveRamp Agentic Audiences Working Group
+**Feedback:** Submit issues or PRs to the Agentic Audiences repository
 **License:** Creative Commons Attribution 4.0 International (CC BY 4.0)

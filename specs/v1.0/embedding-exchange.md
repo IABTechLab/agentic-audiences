@@ -1,7 +1,7 @@
-# UCP Contextual Embedding Exchange Specification (Draft v0.1)
+# Agentic Audiences Contextual Embedding Exchange Specification (Draft v0.1)
 
 Status: Draft  
-Scope: Defines a vendor-neutral wire format for exchanging contextual embeddings between agents in the User ContextProtocol (UCP) ecosystem.  
+Scope: Defines a vendor-neutral wire format for exchanging contextual embeddings between agents in the Agentic Audiences ecosystem.  
 Primary transport: HTTPS JSON (optionally NDJSON for streaming). Binary variants MAY use CBOR with identical field names.
 
 ---
