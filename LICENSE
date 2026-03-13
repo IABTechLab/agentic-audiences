@@ -1,4 +1,4 @@
-User Context Protocol (UCP)
+Agentic Audiences
 Copyright (c) 2025 LiveRamp Holdings, Inc.
 
 ======================================================================
@@ -15,11 +15,6 @@ This repository contains two types of materials, each with its own license:
    Licensed under: Apache License 2.0
    See: https://www.apache.org/licenses/LICENSE-2.0
 
-Trademarks:
-"User Context Protocol" is a trademark of LiveRamp Holdings, Inc.
-Use of these marks is subject to the terms described in TRADEMARK.md and is not
-granted by either license above.
-
 ======================================================================
 LICENSE DETAILS
 ======================================================================
@@ -31,7 +26,7 @@ A. Specification and Documentation License (CC BY 4.0)
 Files covered:
 - All Markdown files under /specs and /docs
 - All schema and example files (.json, .yaml, .yml, .md) in the specification tree
-- Any whitepapers, diagrams, and explanatory materials describing UCP
+- Any whitepapers, diagrams, and explanatory materials describing Agentic Audiences
 
 Summary:
 You are free to share and adapt the specification for any purpose, provided
@@ -41,7 +36,7 @@ Full license text available at:
 https://creativecommons.org/licenses/by/4.0/legalcode.txt
 
 Example attribution:
-"Portions of this work are based on the User Context Protocol,
+"Portions of this work are based on Agentic Audiences,
 developed by LiveRamp Holdings, Inc. (CC BY 4.0)."
 
 ----------------------------------------------------------------------
@@ -71,7 +66,7 @@ C. Contact
 For legal inquiries or permission requests, contact:
 
 LiveRamp Holdings, Inc.
-Attn: Legal Department – User Context Protocol
+Attn: Legal Department – Agentic Audiences
 225 Bush Street, 17th Floor
 San Francisco, CA 94104
 Email: legal@liveramp.com
