@@ -15,13 +15,17 @@ docker run -p 8080:8080 aa-scoring
 
 # Health check
 curl http://localhost:8080/health
+
+# GPU build (requires NVIDIA runtime)
+docker build -f Dockerfile.gpu -t aa-scoring:gpu .
+docker run --gpus all -p 8080:8080 aa-scoring:gpu
 ```
 
 ## API
 
 ### POST /campaigns/heads
 
-Register campaign head weight vectors. Heads are partitioned by `model:embedding_type` and only scored against matching embeddings.
+Register campaign head weight vectors. Heads are partitioned by `model:embedding_type` and only scored against matching embeddings. If a `campaign_head_id` already exists, it is replaced (upsert).
 
 Model configuration (metric, normalization, compatibility) travels with the head registration — no pre-declaration required.
 
@@ -73,6 +77,50 @@ Validation rules:
 - `len(weights)` must equal `dimension`
 - `dimension` must be consistent for all heads registered under the same `model` name
 - `type` can be a canonical type or a wire-format alias (see [Type Aliases](#type-aliases))
+
+### PUT /campaigns/heads
+
+Update existing campaign heads. Same payload as POST. Returns 404 if any `campaign_head_id` does not exist. The update is atomic — if any head is missing, none are updated.
+
+```bash
+curl -X PUT http://localhost:8080/campaigns/heads \
+  -H "Content-Type: application/json" \
+  -d '{
+    "heads": [
+      {
+        "campaign_id": "camp-001",
+        "campaign_head_id": "head-001a",
+        "weights": [0.2, -0.1, 0.4, ...],
+        "model": "minilm-l6-v2",
+        "dimension": 384,
+        "type": "contextual"
+      }
+    ]
+  }'
+```
+
+**Response:**
+```json
+{
+  "registered": 1,
+  "ids": ["head-001a"]
+}
+```
+
+### DELETE /campaigns/heads/{campaign_head_id}
+
+Remove a single campaign head. Returns 404 if the head does not exist. When the last head for a model is deleted, the model configuration is also removed, allowing re-registration with a different dimension.
+
+```bash
+curl -X DELETE http://localhost:8080/campaigns/heads/head-001a
+```
+
+**Response:**
+```json
+{
+  "deleted": "head-001a"
+}
+```
 
 ### POST /score
 
@@ -178,7 +226,7 @@ Each bucket's `reduced_centroid` is the PCA-reduced mean of all embeddings that 
 
 ### GET /health
 
-Returns `{"status": "ok"}`. Use for container orchestration liveness probes.
+Returns `{"status": "ok", "device": "numpy"}`. The `device` field indicates the active compute backend (`"numpy"`, `"cpu"`, or `"cuda:0"`). Use for container orchestration liveness probes.
 
 ## Configuration
 
@@ -251,19 +299,20 @@ When `apply_l2_norm` is `true`, both vectors are unit-normalized before scoring.
 ┌──────────────────────────────────────────────┐
 │              FastAPI Application             │
 ├──────────┬──────────────┬────────────────────┤
-│ POST     │ POST         │ GET                │
+│ POST     │ POST/PUT/DEL │ GET                │
 │ /score   │ /campaigns/  │ /analytics         │
 │          │   heads      │                    │
 ├──────────┴──────────────┴────────────────────┤
 │                  Engine                       │
 │  ┌─────────┐  ┌─────────┐  ┌──────────────┐ │
 │  │ Scorer  │  │  Store   │  │  Analytics   │ │
-│  │ (NumPy) │  │ (dict)   │  │  (PCA/FIFO)  │ │
+│  │(NumPy/  │  │ (dict)   │  │  (PCA/FIFO)  │ │
+│  │ Torch)  │  │          │  │              │ │
 │  └─────────┘  └─────────┘  └──────────────┘ │
 └──────────────────────────────────────────────┘
 ```
 
-- **Scorer**: Batch NumPy similarity computation. Stacks heads into a matrix for vectorized scoring.
+- **Scorer**: Vectorized similarity computation. NumPy by default; auto-switches to PyTorch when torch is installed (GPU or CPU).
 - **Store**: In-memory dict partitioned by `model:type`. Thread-safe via asyncio.Lock. Model config (metric, l2_norm, compatibility) is captured from head registration data.
 - **Analytics**: Records scoring events in a bounded FIFO buffer. On query, fits PCA and computes per-bucket centroids.
 
@@ -278,13 +327,19 @@ pytest tests/ -v
 
 # Run locally (without Docker)
 uvicorn app.main:app --host 0.0.0.0 --port 8080
+
+# GPU build + test
+docker build -f Dockerfile.gpu -t aa-scoring:gpu .
+docker run --rm aa-scoring:gpu python3 -m pytest tests/ -v
 ```
 
 ### Project Structure
 
 ```
 ├── Dockerfile
+├── Dockerfile.gpu
 ├── requirements.txt
+├── requirements-gpu.txt
 ├── config.yaml              # optional — type aliases + analytics config
 ├── app/
 │   ├── main.py              # FastAPI app + lifespan
@@ -297,6 +352,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 │   ├── engine/
 │   │   ├── scorer.py         # Similarity scoring (cosine/dot/L2)
 │   │   ├── store.py          # Campaign head store + model config
+│   │   ├── device.py         # Compute device detection (NumPy/Torch)
 │   │   └── analytics.py      # PCA + score bucketing
 │   └── routes/
 │       ├── score.py          # POST /score
@@ -307,7 +363,9 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 │   ├── test_scorer.py
 │   ├── test_campaigns.py
 │   ├── test_score.py
-│   └── test_analytics.py
+│   ├── test_analytics.py
+│   ├── test_scorer_torch.py
+│   └── test_store_cache.py
 └── examples/
     ├── sample_score_request.json
     └── sample_campaign_heads.json
@@ -316,7 +374,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 ## Design Decisions
 
 - **In-memory store** — acceptable for a reference implementation. Production use would swap in Redis or a vector database.
-- **NumPy over FAISS** — brute-force similarity is sub-millisecond for hundreds of campaign heads; FAISS adds complexity without benefit at this scale.
+- **NumPy + optional Torch** — brute-force similarity is sub-millisecond for hundreds of campaign heads. When PyTorch is available (installed via `requirements-gpu.txt`), scoring uses torch tensors on GPU/CPU automatically. FAISS adds complexity without benefit at this scale.
 - **PCA over UMAP** — deterministic, fast, no hyperparameters to tune.
 - **float16 storage, float32 math** — halves memory usage. NumPy auto-upcasts during computation for numerical stability.
 - **Config travels with registration** — model configuration (dimension, metric, normalization, compatibility) is declared per-campaign-head at registration time, not pre-declared in config. This allows different campaigns to use different models without redeploying.

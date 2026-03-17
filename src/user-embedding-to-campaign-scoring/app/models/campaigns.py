@@ -24,3 +24,7 @@ class CampaignHeadRegistration(BaseModel):
 class CampaignHeadResponse(BaseModel):
     registered: int
     ids: list[str]
+
+
+class CampaignHeadDeleteResponse(BaseModel):
+    deleted: str

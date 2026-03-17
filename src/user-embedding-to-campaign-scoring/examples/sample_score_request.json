@@ -13,7 +13,7 @@
               "ver": "1.0",
               "vector": [0.15, -0.22, 0.31, 0.42, 0.48, -0.05, 0.18, -0.28],
               "model": "minilm-l6-v2",
-              "dimension": 384,
+              "dimension": 8,
               "type": "context"
             }
           }

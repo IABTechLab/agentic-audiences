@@ -36,6 +36,8 @@ class CampaignHeadStore:
     _model_configs: dict[str, ModelConfig] = field(default_factory=dict)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     _cache: dict[str, tuple[list[tuple[str, str]], Union[np.ndarray, "torch.Tensor"]]] = field(default_factory=dict)
+    _head_partition: dict[str, str] = field(default_factory=dict)  # campaign_head_id -> partition_key
+    _model_head_count: dict[str, int] = field(default_factory=dict)  # model -> count of heads
 
     def _partition_key(self, model: str, embedding_type: str) -> str:
         return f"{model}:{embedding_type}"
@@ -55,8 +57,70 @@ class CampaignHeadStore:
             return True
         return False
 
+    def _upsert_one(self, h: dict) -> str:
+        """Insert or replace a single head. Must be called under the lock."""
+        model = h["model"]
+        raw_type = h["type"]
+        dimension = h["dimension"]
+        weights = h["weights"]
+        campaign_head_id = h["campaign_head_id"]
+
+        if len(weights) != dimension:
+            raise ValueError(
+                f"Dimension mismatch for model {model}: "
+                f"len(weights)={len(weights)}, declared dimension={dimension}"
+            )
+
+        # Register or validate model config
+        existing = self._model_configs.get(model)
+        if existing is not None:
+            if existing.dimension != dimension:
+                raise ValueError(
+                    f"Dimension mismatch for model {model}: "
+                    f"expected {existing.dimension}, got {dimension}"
+                )
+        else:
+            self._model_configs[model] = ModelConfig(
+                dimension=dimension,
+                metric=h.get("metric", "cosine"),
+                apply_l2_norm=h.get("apply_l2_norm", False),
+                compatible_with=h.get("compatible_with", []),
+            )
+
+        # If head already exists, remove old entry
+        if campaign_head_id in self._head_partition:
+            old_key = self._head_partition[campaign_head_id]
+            old_model = old_key.split(":", 1)[0]
+            self._heads[old_key] = [
+                s for s in self._heads[old_key] if s.campaign_head_id != campaign_head_id
+            ]
+            if not self._heads[old_key]:
+                del self._heads[old_key]
+            self._model_head_count[old_model] -= 1
+            if self._model_head_count[old_model] == 0:
+                del self._model_head_count[old_model]
+                del self._model_configs[old_model]
+
+        emb_type = self.config.resolve_type(raw_type)
+        key = self._partition_key(model, emb_type)
+
+        arr = np.array(weights, dtype=np.float16)
+        stored = StoredHead(
+            campaign_id=h["campaign_id"],
+            campaign_head_id=campaign_head_id,
+            weights=arr,
+        )
+
+        if key not in self._heads:
+            self._heads[key] = []
+        self._heads[key].append(stored)
+        self._head_partition[campaign_head_id] = key
+        self._model_head_count[model] = self._model_head_count.get(model, 0) + 1
+
+        return campaign_head_id
+
     async def register(self, heads: list[dict]) -> list[str]:
-        """Register campaign heads. Each dict must have:
+        """Register campaign heads (upsert semantics). Each dict must have:
         campaign_id, campaign_head_id, weights, model, dimension, type.
         Optionally: metric, apply_l2_norm, compatible_with.
 
@@ -65,51 +129,48 @@ class CampaignHeadStore:
         registered: list[str] = []
         async with self._lock:
             for h in heads:
-                model = h["model"]
-                raw_type = h["type"]
-                dimension = h["dimension"]
-                weights = h["weights"]
+                registered.append(self._upsert_one(h))
+            self._cache.clear()
+        return registered
 
-                if len(weights) != dimension:
-                    raise ValueError(
-                        f"Dimension mismatch for model {model}: "
-                        f"len(weights)={len(weights)}, declared dimension={dimension}"
-                    )
+    async def delete(self, campaign_head_id: str) -> None:
+        """Delete a single campaign head by ID. Raises KeyError if not found."""
+        async with self._lock:
+            if campaign_head_id not in self._head_partition:
+                raise KeyError(f"Campaign head '{campaign_head_id}' not found")
 
-                # Register or validate model config
-                existing = self._model_configs.get(model)
-                if existing is not None:
-                    if existing.dimension != dimension:
-                        raise ValueError(
-                            f"Dimension mismatch for model {model}: "
-                            f"expected {existing.dimension}, got {dimension}"
-                        )
-                else:
-                    self._model_configs[model] = ModelConfig(
-                        dimension=dimension,
-                        metric=h.get("metric", "cosine"),
-                        apply_l2_norm=h.get("apply_l2_norm", False),
-                        compatible_with=h.get("compatible_with", []),
-                    )
+            key = self._head_partition[campaign_head_id]
+            model = key.split(":", 1)[0]
 
-                emb_type = self.config.resolve_type(raw_type)
-                key = self._partition_key(model, emb_type)
+            self._heads[key] = [
+                s for s in self._heads[key] if s.campaign_head_id != campaign_head_id
+            ]
+            if not self._heads[key]:
+                del self._heads[key]
 
-                arr = np.array(weights, dtype=np.float16)
-                stored = StoredHead(
-                    campaign_id=h["campaign_id"],
-                    campaign_head_id=h["campaign_head_id"],
-                    weights=arr,
-                )
+            self._model_head_count[model] -= 1
+            if self._model_head_count[model] == 0:
+                del self._model_head_count[model]
+                del self._model_configs[model]
 
-                if key not in self._heads:
-                    self._heads[key] = []
-                self._heads[key].append(stored)
-                registered.append(h["campaign_head_id"])
-
+            del self._head_partition[campaign_head_id]
             self._cache.clear()
 
-        return registered
+    async def update(self, heads: list[dict]) -> list[str]:
+        """Update existing campaign heads. Raises KeyError if any head doesn't exist.
+        Atomic: no heads are updated if any are missing.
+        """
+        async with self._lock:
+            # Pre-check: all must exist
+            for h in heads:
+                if h["campaign_head_id"] not in self._head_partition:
+                    raise KeyError(f"Campaign head '{h['campaign_head_id']}' not found")
+
+            updated: list[str] = []
+            for h in heads:
+                updated.append(self._upsert_one(h))
+            self._cache.clear()
+        return updated
 
     async def get_heads(
         self, model: str, embedding_type: str
