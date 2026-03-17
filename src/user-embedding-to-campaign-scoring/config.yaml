@@ -1,0 +1,23 @@
+embedding_types:
+  - identity
+  - contextual
+  - reinforcement
+  - capi
+  - intent
+
+type_aliases:
+  context: contextual
+  creative: capi
+  user_intent: intent
+  query: intent
+  inventory: contextual
+
+analytics:
+  pca_dimensions: 3
+  score_buckets:
+    - 0
+    - 25
+    - 50
+    - 75
+    - 100
+  max_embeddings_stored: 10000
