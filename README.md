@@ -17,6 +17,7 @@ As the industry transitions into the agentic web, where autonomous buyer, seller
 This repository contains:
 - **Technical specifications** for embedding exchange formats and schemas
 - **AI/ML model architecture guidance** ([`/docs/AI_ML Models in Agentic Digital Advertising Era.pdf`](docs/AI_ML%20Models%20in%20Agentic%20Digital%20Advertising%20Era.pdf)) explaining how 15+ model categories across the advertising lifecycle consume and produce embeddings
+- **Systems and models architecture** ([`/docs/systems-and-models.md`](docs/systems-and-models.md)) — a "10K foot view" of the end-to-end system: audience model, browser/edge layer, campaign scoring service, campaign training loop, component ownership, and model interoperability
 - **Reference schemas and examples** demonstrating real-world protocol usage (in-progress)
 
 ---
@@ -118,6 +119,9 @@ Agentic Audiences defines:
 
 By evolving from structured text exchanges to compact vector exchanges, Agentic Audiences will enable major gains in speed, scale, and cost efficiency for campaign optimization.
 
+> **🏗 System Architecture Deep Dive**
+> [`/docs/systems-and-models.md`](docs/systems-and-models.md) provides a 10K foot view of the end-to-end Agentic Audiences architecture — covering the audience model, browser/edge embedding storage (ATS.js + Prebid), campaign scoring service (Docker sidecar), campaign training loop, and component ownership. It also addresses model interoperability and answers common architectural questions.
+
 ---
 
 ## Example Evolution Path
@@ -151,6 +155,7 @@ This repository hosts the evolving Agentic Audiences specification and reference
 We welcome contributions from engineers, researchers, and organizations shaping the next generation of agentic advertising.
 
 To get involved:
+- Read [`/docs/systems-and-models.md`](docs/systems-and-models.md) for a 10K foot view of the system architecture
 - Read [`/docs/AI_ML Models in Agentic Digital Advertising Era.pdf`](docs/AI_ML%20Models%20in%20Agentic%20Digital%20Advertising%20Era.pdf) to understand the model ecosystem that Agentic Audiences enables
 - Fork the repo and explore the `/specs` directory for technical specifications
 - Propose changes via pull request
