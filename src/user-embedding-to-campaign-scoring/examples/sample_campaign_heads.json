@@ -1,0 +1,40 @@
+{
+  "heads": [
+    {
+      "campaign_id": "camp-001",
+      "campaign_head_id": "head-001a",
+      "weights": [0.1, -0.2, 0.3, 0.4, 0.5, -0.1, 0.2, -0.3],
+      "model": "minilm-l6-v2",
+      "dimension": 8,
+      "type": "contextual",
+      "metric": "cosine",
+      "apply_l2_norm": true,
+      "embedding_space_id": "aa://spaces/contextual/en-v1",
+      "compatible_with": ["sbert-mini-ctx-001"]
+    },
+    {
+      "campaign_id": "camp-001",
+      "campaign_head_id": "head-001b",
+      "weights": [0.5, 0.4, 0.3, 0.2, 0.1, -0.1, -0.2, -0.3],
+      "model": "minilm-l6-v2",
+      "dimension": 8,
+      "type": "intent",
+      "metric": "cosine",
+      "apply_l2_norm": true,
+      "embedding_space_id": "aa://spaces/contextual/en-v1",
+      "compatible_with": ["sbert-mini-ctx-001"]
+    },
+    {
+      "campaign_id": "camp-002",
+      "campaign_head_id": "head-002a",
+      "weights": [-0.1, 0.5, -0.3, 0.2, 0.4, 0.1, -0.4, 0.3],
+      "model": "minilm-l6-v2",
+      "dimension": 8,
+      "type": "contextual",
+      "metric": "cosine",
+      "apply_l2_norm": true,
+      "embedding_space_id": "aa://spaces/contextual/en-v1",
+      "compatible_with": ["sbert-mini-ctx-001"]
+    }
+  ]
+}
