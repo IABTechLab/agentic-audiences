@@ -1,0 +1,28 @@
+# Default encoder configuration
+encoder:
+  # Provider: "sentence_transformers" (default) or "mixpeek"
+  provider: sentence_transformers
+
+  # Model used for embedding generation
+  model_name: all-MiniLM-L6-v2
+  dimension: 384
+
+  # Wire type sent to the scoring service (resolved to "contextual" via alias)
+  embedding_type: context
+
+  # Maximum tokens per chunk (longer content is truncated)
+  max_tokens: 512
+
+# Mixpeek provider config (used when provider=mixpeek)
+mixpeek:
+  # base_url: https://api.mixpeek.com
+  # api_key: set via MIXPEEK_API_KEY env var
+  # namespace: set via MIXPEEK_NAMESPACE env var
+  # retriever_id: auto-discovered or set explicitly
+
+# Content extraction
+extraction:
+  # User-Agent for URL fetching
+  user_agent: "AATech-ContextualEncoder/1.0"
+  # Request timeout in seconds
+  timeout: 10

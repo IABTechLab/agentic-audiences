@@ -1,0 +1,26 @@
+{
+  "data": {
+    "id": "contextual-signal-encoder",
+    "name": "contextual-embeddings",
+    "segment": [
+      {
+        "id": "ctx-a1b2c3d4",
+        "name": "contextual-text",
+        "ext": {
+          "ver": "1.0",
+          "vector": [0.042, -0.118, 0.203, "... (384 dimensions for MiniLM, varies by model)"],
+          "model": "all-MiniLM-L6-v2",
+          "dimension": 384,
+          "type": "context"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "source": "text",
+    "provider": "sentence_transformers",
+    "content_length": 229,
+    "iab_categories": null
+  },
+  "_comment": "The data.segment array is designed to be placed directly into an OpenRTB user.data[] entry for scoring by the Agentic Audiences scoring service."
+}

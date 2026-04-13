@@ -1,0 +1,48 @@
+{
+  "_description": "Shows how the encoder output plugs into the scoring service.",
+
+  "step_1_encode": {
+    "_action": "POST http://localhost:8081/encode",
+    "request": {
+      "text": "NFL playoff predictions: Chiefs vs Bills AFC Championship preview"
+    },
+    "response_segment_ext": {
+      "ver": "1.0",
+      "vector": [0.042, -0.118, 0.203, "..."],
+      "model": "all-MiniLM-L6-v2",
+      "dimension": 384,
+      "type": "context"
+    }
+  },
+
+  "step_2_score": {
+    "_action": "POST http://localhost:8080/score",
+    "_note": "Take the encoder output and place it into an ORTB score request",
+    "request": {
+      "id": "bid-req-001",
+      "user": {
+        "id": "page-context",
+        "data": [
+          {
+            "id": "contextual-signal-encoder",
+            "name": "contextual-embeddings",
+            "segment": [
+              {
+                "id": "ctx-a1b2c3d4",
+                "ext": {
+                  "ver": "1.0",
+                  "vector": [0.042, -0.118, 0.203, "..."],
+                  "model": "all-MiniLM-L6-v2",
+                  "dimension": 384,
+                  "type": "context"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "top_k": 5
+    },
+    "_expected_response": "Top-K campaign heads scored by cosine similarity against the contextual embedding"
+  }
+}
