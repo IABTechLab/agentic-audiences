@@ -19,9 +19,11 @@ from fastapi import FastAPI
 
 from app.config import load_config
 from app.engine.encoder import ContextualEncoder
-from app.routes.encode import router as encode_router, set_encoder
+from app.engine.multi_encoder import MultiModelEncoder
+from app.routes.encode import router as encode_router, set_encoder, set_multi_encoder
 
 _provider = None
+_multi_encoder = None
 
 
 def _create_provider(config):
@@ -35,14 +37,18 @@ def _create_provider(config):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _provider
+    global _provider, _multi_encoder
     config = load_config()
     _provider = _create_provider(config)
     encoder = ContextualEncoder(config, _provider)
+    _multi_encoder = MultiModelEncoder(config)
     set_encoder(encoder)
+    set_multi_encoder(_multi_encoder)
     yield
     if _provider:
         await _provider.close()
+    if _multi_encoder:
+        await _multi_encoder.close()
 
 
 app = FastAPI(

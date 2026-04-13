@@ -1,0 +1,171 @@
+{
+  "_description": "Multi-model encoding: one content item → multiple named vectors. Each vector carries model metadata for routing, versioning, and compatibility. This addresses the named vector / model permutation problem discussed in the working group.",
+
+  "step_1_multi_encode": {
+    "_action": "POST http://localhost:8081/encode/multi",
+    "request": {
+      "text": "Breaking: NFL playoff bracket set after wild-card weekend. Chiefs earn top seed in AFC.",
+      "image_url": "https://example.com/nfl-playoffs.jpg",
+      "models": [
+        {
+          "name": "text-minilm",
+          "provider": "sentence_transformers",
+          "model": "all-MiniLM-L6-v2",
+          "modality": "text"
+        },
+        {
+          "name": "text-mpnet",
+          "provider": "sentence_transformers",
+          "model": "all-mpnet-base-v2",
+          "modality": "text"
+        },
+        {
+          "name": "image-multimodal",
+          "provider": "mixpeek",
+          "modality": "image"
+        }
+      ]
+    },
+    "response": {
+      "named_vectors": [
+        {
+          "name": "text-minilm",
+          "vector": "[384d vector]",
+          "model": "all-MiniLM-L6-v2",
+          "dimension": 384,
+          "modality": "text",
+          "provider": "sentence_transformers",
+          "metadata": {
+            "embedding_type": "context",
+            "architecture": "transformer",
+            "pooling": "mean",
+            "normalization": "l2_unit",
+            "training_domain": ["general", "semantic-similarity"],
+            "version": "2.0"
+          }
+        },
+        {
+          "name": "text-mpnet",
+          "vector": "[768d vector]",
+          "model": "all-mpnet-base-v2",
+          "dimension": 768,
+          "modality": "text",
+          "provider": "sentence_transformers",
+          "metadata": {
+            "embedding_type": "context",
+            "architecture": "transformer",
+            "pooling": "mean",
+            "normalization": "l2_unit",
+            "training_domain": ["general", "semantic-similarity"],
+            "version": "2.0"
+          }
+        },
+        {
+          "name": "image-multimodal",
+          "vector": "[1152d vector]",
+          "model": "mixpeek-multimodal",
+          "dimension": 1152,
+          "modality": "image",
+          "provider": "mixpeek",
+          "metadata": {
+            "embedding_type": "context",
+            "architecture": "multimodal-fusion",
+            "pooling": "cls",
+            "normalization": "l2_unit",
+            "training_domain": ["general", "multimodal", "adtech"],
+            "version": "1.0"
+          }
+        }
+      ],
+      "storage_example": {
+        "_description": "How named vectors map to a single storage point. Each vector is independently searchable by name. Payload metadata enables filtering by model characteristics at query time.",
+        "point_id": "content-a1b2c3d4",
+        "named_vectors": {
+          "text-minilm": {"values": "[384d]", "dimension": 384},
+          "text-mpnet": {"values": "[768d]", "dimension": 768},
+          "image-multimodal": {"values": "[1152d]", "dimension": 1152}
+        },
+        "payload": {
+          "models": {
+            "text-minilm": {
+              "model": "all-MiniLM-L6-v2",
+              "dimension": 384,
+              "modality": "text",
+              "architecture": "transformer",
+              "pooling": "mean",
+              "normalization": "l2_unit",
+              "version": "2.0"
+            },
+            "text-mpnet": {
+              "model": "all-mpnet-base-v2",
+              "dimension": 768,
+              "modality": "text",
+              "architecture": "transformer",
+              "pooling": "mean",
+              "normalization": "l2_unit",
+              "version": "2.0"
+            },
+            "image-multimodal": {
+              "model": "mixpeek-multimodal",
+              "dimension": 1152,
+              "modality": "image",
+              "architecture": "multimodal-fusion",
+              "pooling": "cls",
+              "normalization": "l2_unit",
+              "version": "1.0"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "step_2_query_by_vector_name": {
+    "_description": "Search using a specific named vector. The index_name parameter routes to the right vector.",
+    "search_text_minilm": {
+      "index_name": "text-minilm",
+      "query_vector": "[384d query]",
+      "filter": {"must": [{"key": "models.text-minilm.version", "match": {"value": "2.0"}}]},
+      "top_k": 10
+    },
+    "search_image": {
+      "index_name": "image-multimodal",
+      "query_vector": "[1152d query]",
+      "filter": {"must": [{"key": "models.image-multimodal.modality", "match": {"value": "image"}}]},
+      "top_k": 10
+    }
+  },
+
+  "step_3_score_with_multiple_segments": {
+    "_description": "The ORTB data from the encoder can also be sent to the scoring service. Each segment routes to campaign heads by model:type partition.",
+    "_action": "POST http://localhost:8080/score",
+    "request": {
+      "id": "bid-req-multi-model",
+      "user": {
+        "id": "page-context",
+        "data": [
+          {
+            "id": "contextual-signal-encoder",
+            "name": "contextual-embeddings",
+            "segment": [
+              {
+                "id": "ctx-text-minilm-abc123",
+                "ext": {"ver": "1.0", "vector": "[384d]", "model": "all-MiniLM-L6-v2", "dimension": 384, "type": "context"}
+              },
+              {
+                "id": "ctx-text-mpnet-def456",
+                "ext": {"ver": "1.0", "vector": "[768d]", "model": "all-mpnet-base-v2", "dimension": 768, "type": "context"}
+              },
+              {
+                "id": "ctx-image-multimodal-ghi789",
+                "ext": {"ver": "1.0", "vector": "[1152d]", "model": "mixpeek-multimodal", "dimension": 1152, "type": "context"}
+              }
+            ]
+          }
+        ]
+      },
+      "top_k": 5
+    },
+    "_expected": "Three ScoreResponse entries — one per model — each with top-K campaign heads scored against that model's embedding."
+  }
+}

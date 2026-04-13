@@ -187,6 +187,97 @@ class MyProvider(EmbeddingProvider):
         pass
 ```
 
+## Multi-Model Encoding (Named Vectors)
+
+The encoder supports running content through **multiple models simultaneously**, producing named vectors with full model metadata. This addresses the named vector / model permutation problem: instead of separate ORTB segments with string-based `model:type` partition keys, content is encoded once and stored as a single point with multiple named vectors, each independently queryable.
+
+### POST /encode/multi
+
+```bash
+curl -X POST http://localhost:8081/encode/multi \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "NFL playoff bracket set after wild-card weekend",
+    "image_url": "https://example.com/nfl-playoffs.jpg",
+    "models": [
+      {"name": "text-minilm", "provider": "sentence_transformers", "model": "all-MiniLM-L6-v2", "modality": "text"},
+      {"name": "text-mpnet", "provider": "sentence_transformers", "model": "all-mpnet-base-v2", "modality": "text"},
+      {"name": "image-multimodal", "provider": "mixpeek", "modality": "image"}
+    ]
+  }'
+```
+
+**Response includes:**
+
+- **`named_vectors`** — one per model, each carrying metadata (architecture, pooling, normalization, training domain, version):
+
+```json
+{
+  "named_vectors": [
+    {
+      "name": "text-minilm",
+      "vector": "[384d]",
+      "model": "all-MiniLM-L6-v2",
+      "dimension": 384,
+      "modality": "text",
+      "metadata": {
+        "embedding_type": "context",
+        "architecture": "transformer",
+        "pooling": "mean",
+        "normalization": "l2_unit",
+        "training_domain": ["general", "semantic-similarity"],
+        "version": "2.0"
+      }
+    },
+    {
+      "name": "image-multimodal",
+      "vector": "[1152d]",
+      "model": "mixpeek-multimodal",
+      "dimension": 1152,
+      "modality": "image",
+      "metadata": {
+        "architecture": "multimodal-fusion",
+        "training_domain": ["general", "multimodal", "adtech"]
+      }
+    }
+  ]
+}
+```
+
+- **`storage_example`** — shows how named vectors map to a single storage point with indexed payload metadata:
+
+```json
+{
+  "point_id": "content-a1b2c3d4",
+  "named_vectors": {
+    "text-minilm": {"values": "[384d]", "dimension": 384},
+    "text-mpnet": {"values": "[768d]", "dimension": 768},
+    "image-multimodal": {"values": "[1152d]", "dimension": 1152}
+  },
+  "payload": {
+    "models": {
+      "text-minilm": {"model": "all-MiniLM-L6-v2", "architecture": "transformer", "version": "2.0"},
+      "image-multimodal": {"model": "mixpeek-multimodal", "architecture": "multimodal-fusion", "version": "1.0"}
+    }
+  }
+}
+```
+
+- **`ortb_data`** — backwards-compatible ORTB segments for the scoring service (each model maps to a separate segment, routed by `model:type` partition).
+
+### Why named vectors matter
+
+The current spec puts model routing into the scoring service via `model:type` partition keys. This breaks down when:
+
+- **Multiple models per entity**: A page has text, image, and video embeddings — they should be one point, not three separate segments.
+- **Model versioning**: Upgrading a model requires changing the partition key string, breaking existing campaign heads.
+- **Metadata filtering**: You want to query "all text embeddings from transformer models with mean pooling" — not possible with string-based partitioning.
+- **Cross-model search**: Find content where the text embedding matches AND the image embedding matches — requires named vectors on the same point.
+
+Named vectors with payload metadata push model routing to the infrastructure layer, where it can be indexed, filtered, and versioned independently.
+
+See `examples/named_vectors_multi_model.json` for a complete walkthrough.
+
 ## End-to-End Pipeline
 
 The encoder is designed to work with the [scoring service](../user-embedding-to-campaign-scoring/):
@@ -264,19 +355,22 @@ uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
 │   ├── models/
 │   │   └── encode.py        # Request/response + ORTB models
 │   ├── engine/
-│   │   ├── encoder.py       # Core encoding orchestrator
+│   │   ├── encoder.py       # Single-model encoding orchestrator
+│   │   ├── multi_encoder.py # Multi-model named vector encoding
 │   │   └── extractor.py     # URL text extraction
 │   ├── providers/
 │   │   ├── base.py          # EmbeddingProvider interface
 │   │   ├── sentence_transformers.py  # Open-source default
 │   │   └── mixpeek.py       # Production multimodal
 │   └── routes/
-│       └── encode.py        # POST /encode, /encode/batch
+│       └── encode.py        # POST /encode, /encode/batch, /encode/multi
 ├── tests/
-│   ├── test_encode.py              # Unit tests (mocked)
+│   ├── test_encode.py              # Single-model unit tests
+│   ├── test_multi_encode.py        # Multi-model / named vector tests
 │   └── test_scoring_integration.py # Scoring service compatibility
 └── examples/
     ├── sample_encode_request.json
     ├── sample_encode_response.json
-    └── end_to_end_pipeline.json
+    ├── end_to_end_pipeline.json
+    └── named_vectors_multi_model.json
 ```

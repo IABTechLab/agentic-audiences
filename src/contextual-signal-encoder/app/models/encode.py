@@ -92,3 +92,74 @@ class IABCategory(BaseModel):
     tier1: str
     path: str
     score: float = Field(ge=0.0, le=1.0)
+
+
+# ---------------------------------------------------------------------------
+# Multi-model (named vectors) support
+# ---------------------------------------------------------------------------
+
+class ModelSpec(BaseModel):
+    """Specification for a single embedding model in a multi-model request."""
+
+    name: str = Field(description="Unique name for this vector (e.g., 'text-minilm', 'image-siglip').")
+    provider: str = Field(
+        default="sentence_transformers",
+        description="Provider to use: 'sentence_transformers' or 'mixpeek'.",
+    )
+    model: str | None = Field(
+        default=None,
+        description="Model name override (e.g., 'all-MiniLM-L6-v2', 'all-mpnet-base-v2').",
+    )
+    modality: str = Field(
+        default="text",
+        description="Input modality: 'text', 'image', or 'video'.",
+    )
+
+
+class MultiEncodeRequest(BaseModel):
+    """Encode content through multiple models, producing named vectors."""
+
+    text: str | None = Field(default=None, description="Text content.")
+    url: str | None = Field(default=None, description="URL to fetch text from.")
+    image_url: str | None = Field(default=None, description="Image URL.")
+    video_url: str | None = Field(default=None, description="Video URL.")
+    models: list[ModelSpec] = Field(
+        description="List of models to encode with. Each produces a named vector.",
+    )
+
+
+class NamedVector(BaseModel):
+    """A single named embedding vector with full model metadata."""
+
+    name: str = Field(description="Vector name (e.g., 'text-minilm').")
+    vector: list[float]
+    model: str = Field(description="Model that produced this vector.")
+    dimension: int
+    modality: str = Field(description="Input modality used: text, image, or video.")
+    provider: str = Field(description="Provider used.")
+    metadata: ModelMetadata
+
+
+class ModelMetadata(BaseModel):
+    """Model characteristics attached to each named vector for routing and compatibility."""
+
+    embedding_type: str = Field(default="context", description="Wire type for scoring service.")
+    architecture: str | None = Field(default=None, description="Model architecture (e.g., 'transformer', 'siglip').")
+    pooling: str | None = Field(default=None, description="Pooling strategy (mean, cls, max).")
+    normalization: str = Field(default="l2_unit", description="Vector normalization (none, l2_unit).")
+    training_domain: list[str] = Field(default_factory=list, description="Training domains (e.g., 'general', 'adtech').")
+    version: str | None = Field(default=None, description="Model version string.")
+
+
+class MultiEncodeResponse(BaseModel):
+    """Multi-model encoding result with named vectors and ORTB output."""
+
+    named_vectors: list[NamedVector] = Field(
+        description="One named vector per model, each with full metadata.",
+    )
+    ortb_data: ContextualData = Field(
+        description="ORTB-compatible data entry with all vectors as segments.",
+    )
+    storage_example: dict = Field(
+        description="Example of how named vectors map to storage (point with multiple named vectors + payload).",
+    )
