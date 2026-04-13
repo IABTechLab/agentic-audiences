@@ -1,8 +1,8 @@
 """Tests for the contextual signal encoder.
 
-Focus areas:
-1. ORTB wire format compatibility with scoring service
-2. Model descriptor envelope (name, version, space, metric)
+Verifies that output conforms to:
+1. Scoring service EmbeddingSegmentExt wire format
+2. specs/v1.0/embedding_format.schema.json model metadata fields
 3. Embedding space identification for interoperability
 """
 
@@ -59,38 +59,36 @@ class TestORTBWireFormat:
             "user": {"id": "page", "data": [resp.data.model_dump()]},
             "top_k": 5,
         }
-        # Must serialize cleanly (no numpy types)
         parsed = json.loads(json.dumps(score_request))
         seg = parsed["user"]["data"][0]["segment"][0]
         assert seg["ext"]["dimension"] == len(seg["ext"]["vector"])
 
 
-class TestModelDescriptor:
-    """The model descriptor envelope enables cross-party interoperability."""
+class TestSpecMetadata:
+    """Model metadata fields per embedding_format.schema.json."""
 
     @pytest.mark.asyncio
-    async def test_descriptor_present(self):
+    async def test_version_present(self):
         encoder = ContextualEncoder(_mock_provider())
         resp = await encoder.encode(EncodeRequest(text="Test"))
-        desc = resp.data.segment[0].ext.model_descriptor
-
-        assert desc is not None
-        assert desc.name == "all-MiniLM-L6-v2"
-        assert desc.version == "2.0.0"
-        assert desc.metric == "cosine"
+        assert resp.data.segment[0].ext.version == "2.0.0"
 
     @pytest.mark.asyncio
     async def test_embedding_space_id(self):
-        """Two vectors are comparable only within the same embedding space."""
         encoder = ContextualEncoder(_mock_provider())
         resp = await encoder.encode(EncodeRequest(text="Test"))
-        desc = resp.data.segment[0].ext.model_descriptor
-
-        assert desc.embedding_space_id == "aa://spaces/contextual/sentence-transformers/minilm-l6-v2"
+        assert resp.data.segment[0].ext.embedding_space_id == \
+            "aa://spaces/contextual/sentence-transformers/minilm-l6-v2"
 
     @pytest.mark.asyncio
-    async def test_different_provider_different_space(self):
-        """A private-lane provider produces a different embedding space ID."""
+    async def test_metric(self):
+        encoder = ContextualEncoder(_mock_provider())
+        resp = await encoder.encode(EncodeRequest(text="Test"))
+        assert resp.data.segment[0].ext.metric == "cosine"
+
+    @pytest.mark.asyncio
+    async def test_private_lane_different_space(self):
+        """A private-lane provider produces different metadata."""
         provider = AsyncMock()
         provider.encode_text = AsyncMock(
             return_value=EmbeddingResult(
@@ -104,11 +102,11 @@ class TestModelDescriptor:
         )
         encoder = ContextualEncoder(provider)
         resp = await encoder.encode(EncodeRequest(text="Test"))
-        desc = resp.data.segment[0].ext.model_descriptor
+        ext = resp.data.segment[0].ext
 
-        assert desc.name == "proprietary-model-v3"
-        assert desc.embedding_space_id == "aa://spaces/private/acme-corp/v3"
-        assert desc.metric == "dot"
+        assert ext.model == "proprietary-model-v3"
+        assert ext.embedding_space_id == "aa://spaces/private/acme-corp/v3"
+        assert ext.metric == "dot"
 
 
 class TestBasicBehavior:

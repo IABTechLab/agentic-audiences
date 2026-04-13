@@ -1,4 +1,4 @@
-"""Core encoder — content in, ORTB segment with model descriptor out."""
+"""Core encoder — content in, ORTB segment with spec-defined metadata out."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from app.models.encode import (
     EmbeddingExt,
     EncodeRequest,
     EncodeResponse,
-    ModelDescriptor,
     Segment,
 )
 from app.providers.base import EmbeddingProvider
@@ -47,12 +46,9 @@ class ContextualEncoder:
                 model=result.model,
                 dimension=result.dimension,
                 type="context",
-                model_descriptor=ModelDescriptor(
-                    name=result.model,
-                    version=result.version,
-                    embedding_space_id=result.embedding_space_id,
-                    metric=result.metric,
-                ),
+                version=result.version,
+                embedding_space_id=result.embedding_space_id,
+                metric=result.metric,
             ),
         )
 

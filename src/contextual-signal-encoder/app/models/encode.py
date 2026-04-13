@@ -1,8 +1,8 @@
 """Models for contextual signal encoding.
 
-The core output is an ORTB-compatible embedding segment with a model descriptor
-envelope — model name, version, embedding space, and metric — so the receiving
-party knows exactly how to process the vector.
+The output is an ORTB-compatible embedding segment using the model descriptor
+fields defined in specs/v1.0/embedding_format.schema.json — this encoder is a
+reference implementation that produces embeddings conforming to the existing spec.
 """
 
 from __future__ import annotations
@@ -15,35 +15,29 @@ class EncodeRequest(BaseModel):
     url: str | None = Field(default=None, description="URL to fetch and extract text from.")
 
 
-class ModelDescriptor(BaseModel):
-    """Metadata envelope describing how the embedding was produced.
-
-    This is the key interoperability primitive: the receiving party loads the
-    same model (or a compatible one) using this descriptor to read the vector.
-    """
-
-    name: str = Field(description="Model identifier (e.g., 'all-MiniLM-L6-v2').")
-    version: str = Field(description="Model version for reproducibility.")
-    embedding_space_id: str = Field(
-        description="URI identifying the embedding space (e.g., 'aa://spaces/contextual/en-v1'). "
-        "Two vectors are comparable only within the same space.",
-    )
-    metric: str = Field(default="cosine", description="Similarity metric: cosine, dot, or l2.")
-
-
 class EmbeddingExt(BaseModel):
-    """Matches the scoring service's EmbeddingSegmentExt schema, extended
-    with model descriptor for interoperability."""
+    """Matches the scoring service's EmbeddingSegmentExt schema.
+
+    Fields align with specs/v1.0/embedding_format.schema.json:
+    - model → model.id
+    - dimension → model.dimension
+    - type → signal type (context, identity, etc.)
+    - version → model.version
+    - embedding_space_id → model.embedding_space_id
+    - metric → model.metric
+    """
 
     ver: str = "1.0"
     vector: list[float]
     model: str
     dimension: int
     type: str
-    model_descriptor: ModelDescriptor | None = Field(
-        default=None,
-        description="Full model metadata envelope for cross-party interoperability.",
+    version: str = Field(description="Model version (per embedding_format.schema.json).")
+    embedding_space_id: str = Field(
+        description="Embedding space URI (per embedding_format.schema.json). "
+        "Two vectors are comparable only within the same space.",
     )
+    metric: str = Field(default="cosine", description="Similarity metric: cosine, dot, or l2.")
 
 
 class Segment(BaseModel):
