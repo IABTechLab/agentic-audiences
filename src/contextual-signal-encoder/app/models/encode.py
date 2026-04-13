@@ -42,3 +42,51 @@ class EncodeResponse(BaseModel):
     data: ContextualData
     source: str = Field(description="Input source: 'text' or 'url'.")
     content_length: int = Field(description="Character count of the encoded text.")
+
+
+# ---------------------------------------------------------------------------
+# Multi-model (named vectors)
+# ---------------------------------------------------------------------------
+
+class ModelSpec(BaseModel):
+    """A single model to encode with."""
+
+    name: str = Field(description="Vector name (e.g., 'text-minilm', 'image-siglip').")
+    provider: str = Field(default="sentence_transformers")
+    model: str | None = Field(default=None, description="Model name override.")
+    modality: str = Field(default="text", description="'text', 'image', or 'video'.")
+
+
+class MultiEncodeRequest(BaseModel):
+    text: str | None = None
+    url: str | None = None
+    image_url: str | None = None
+    video_url: str | None = None
+    models: list[ModelSpec]
+
+
+class ModelMetadata(BaseModel):
+    """Model characteristics for routing and compatibility."""
+
+    embedding_type: str = "context"
+    architecture: str | None = None
+    pooling: str | None = None
+    normalization: str = "l2_unit"
+    training_domain: list[str] = Field(default_factory=list)
+    version: str | None = None
+
+
+class NamedVector(BaseModel):
+    name: str
+    vector: list[float]
+    model: str
+    dimension: int
+    modality: str
+    provider: str
+    metadata: ModelMetadata
+
+
+class MultiEncodeResponse(BaseModel):
+    named_vectors: list[NamedVector]
+    ortb_data: ContextualData = Field(description="Backwards-compatible ORTB segments.")
+    storage_example: dict = Field(description="How named vectors map to a single storage point.")
