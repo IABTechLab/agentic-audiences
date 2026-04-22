@@ -79,29 +79,29 @@ Agentic Audiences defines how agents exchange these embeddings, transforming adv
 
 ## Agent Ecosystem
 
-Agentic Audiences sits alongside advertising automation patterns where AI assistants manage campaigns through natural language and platform integrations—complementing the control plane with a dedicated data plane for embeddings.
+Agentic Audiences sits alongside IAB Tech Lab's [**buyer agent**](https://github.com/IABTechLab/buyer-agent) and [**seller agent**](https://github.com/IABTechLab/seller-agent)—reference implementations for buyer- and seller-side automation (discovery, negotiation, booking, activation)—complementing that stack with a dedicated data plane for embeddings.
 
 **How Agentic Audiences fits in:**
 
-- **Control plane** — how agents interact with advertising platforms (signals activation, media buy, curation)
+- **[Buyer agent](https://github.com/IABTechLab/buyer-agent)** / **[seller agent](https://github.com/IABTechLab/seller-agent)** (IAB Tech Lab) — programmatic workflows between buyers and sellers (media kits, deals, OpenDirect-style fulfillment, platform activation)
 - **Agentic Audiences** — the data plane: how agents exchange embeddings that encode identity, contextual, and reinforcement signals
 
 Together, these layers enable a complete agentic advertising ecosystem:
 
 | Layer | Focus | Purpose |
 |-------|-------|---------|
-| **Control** | Agent commands and platform integrations | Activate audiences, execute buys, manage inventory |
+| **Control** | IAB Tech Lab [buyer agent](https://github.com/IABTechLab/buyer-agent) / [seller agent](https://github.com/IABTechLab/seller-agent) | Connect buyers and sellers; activate audiences, execute buys, manage inventory |
 | **Data** | Agentic Audiences | Agent-to-agent embedding exchange (share learned representations of users, contexts, and outcomes) |
 
 **Example flow:**
-1. A buyer agent discovers audience signals—for example, "Find premium sports enthusiasts interested in running shoes"—via platform activation or automation workflows
-2. The platform returns candidate audiences or features
+1. A buyer agent (for example, the Tech Lab [buyer agent](https://github.com/IABTechLab/buyer-agent)) discovers audience signals—for example, "Find premium sports enthusiasts interested in running shoes"—via seller-facing workflows
+2. The seller stack (for example, the Tech Lab [seller agent](https://github.com/IABTechLab/seller-agent)) returns candidate audiences or features
 3. The buyer agent uses **Agentic Audiences** to exchange contextual and identity embeddings with a seller agent
 4. The seller agent uses embeddings to match inventory in real-time via vector similarity
 5. Reinforcement signals (impressions, conversions) flow back through **Agentic Audiences** to update models
-6. The measurement agent reports results through platform integrations and uses **Agentic Audiences** to share learned embeddings
+6. The measurement agent reports results through the buyer/seller automation path and uses **Agentic Audiences** to share learned embeddings
 
-Together with broader agent and platform ecosystems, Agentic Audiences supports the transition from prompt-based advertising automation to embedding-based intelligence to drive efficiencies by eliminating the need for massive copies of user-level datasets across the ecosystem.
+Together with the IAB Tech Lab buyer and seller agent ecosystem and broader platform integrations, Agentic Audiences supports the transition from prompt-based advertising automation to embedding-based intelligence to drive efficiencies by eliminating the need for massive copies of user-level datasets across the ecosystem.
 
 ---
 
