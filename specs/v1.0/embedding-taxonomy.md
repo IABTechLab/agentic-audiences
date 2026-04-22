@@ -427,7 +427,6 @@ This taxonomy is a living document. Anticipated future additions:
 
 - Agentic Audiences Embedding Format Specification (`embedding_format.schema.json`)
 - AI/ML Models in Agentic Digital Advertising Era (whitepaper)
-- Ad Context Protocol (ADCP) - https://github.com/adcontextprotocol/adcp
 
 ---
 

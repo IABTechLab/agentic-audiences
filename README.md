@@ -79,29 +79,29 @@ Agentic Audiences defines how agents exchange these embeddings, transforming adv
 
 ## Agent Ecosystem
 
-Agentic Audiences builds on and extends the [**Ad Context Protocol (ADCP)**](https://github.com/adcontextprotocol/adcp), an open standard for advertising automation that enables AI assistants to manage campaigns through natural language interactions.
+Agentic Audiences sits alongside advertising automation patterns where AI assistants manage campaigns through natural language and platform integrations—complementing the control plane with a dedicated data plane for embeddings.
 
-**How Agentic Audiences Complements ADCP:**
+**How Agentic Audiences fits in:**
 
-- **ADCP** defines the control plane—how agents interact with advertising platforms (Signals Activation, Media Buy, Curation protocols)
-- **Agentic Audiences** defines the data plane—how agents exchange embeddings that encode identity, contextual, and reinforcement signals
+- **Control plane** — how agents interact with advertising platforms (signals activation, media buy, curation)
+- **Agentic Audiences** — the data plane: how agents exchange embeddings that encode identity, contextual, and reinforcement signals
 
-Together, these protocols enable a complete agentic advertising ecosystem:
+Together, these layers enable a complete agentic advertising ecosystem:
 
-| Layer | Protocol | Purpose |
-|-------|----------|---------|
-| **Control** | ADCP | Agent commands and platform integrations (activate audiences, execute buys, manage inventory) |
+| Layer | Focus | Purpose |
+|-------|-------|---------|
+| **Control** | Agent commands and platform integrations | Activate audiences, execute buys, manage inventory |
 | **Data** | Agentic Audiences | Agent-to-agent embedding exchange (share learned representations of users, contexts, and outcomes) |
 
-**Example Integration:**
-1. A buyer agent uses **ADCP** to discover audience signals: "Find premium sports enthusiasts interested in running shoes"
-2. The platform returns data via **ADCP's Signals Activation Protocol**
+**Example flow:**
+1. A buyer agent discovers audience signals—for example, "Find premium sports enthusiasts interested in running shoes"—via platform activation or automation workflows
+2. The platform returns candidate audiences or features
 3. The buyer agent uses **Agentic Audiences** to exchange contextual and identity embeddings with a seller agent
 4. The seller agent uses embeddings to match inventory in real-time via vector similarity
 5. Reinforcement signals (impressions, conversions) flow back through **Agentic Audiences** to update models
-6. The measurement agent uses **ADCP** to report results and **Agentic Audiences** to share learned embeddings
+6. The measurement agent reports results through platform integrations and uses **Agentic Audiences** to share learned embeddings
 
-By integrating with ADCP's agent ecosystem, Agentic Audiences enables the transition from prompt-based advertising automation to embedding-based intelligence to drive efficiencies by eliminating the need for massive copies of user-level datasets across the ecosystem.
+Together with broader agent and platform ecosystems, Agentic Audiences supports the transition from prompt-based advertising automation to embedding-based intelligence to drive efficiencies by eliminating the need for massive copies of user-level datasets across the ecosystem.
 
 ---
 
