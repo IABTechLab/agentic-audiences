@@ -1,2 +1,22 @@
 __pycache__/
 *.pyc
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Python tooling caches
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
